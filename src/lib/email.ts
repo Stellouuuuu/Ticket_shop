@@ -47,17 +47,29 @@ function buildEmailContent(order: Order) {
   };
 }
 
-async function resolveRecipients(): Promise<string[]> {
-  const fromEnv = process.env.NOTIFICATION_EMAIL?.trim();
-  const emails = new Set<string>();
+/** Sans domaine vérifié, Resend n'autorise qu'un seul destinataire (compte test). */
+function isResendTestMode(): boolean {
+  const from = (
+    process.env.RESEND_FROM ||
+    "Festichill <onboarding@resend.dev>"
+  ).toLowerCase();
+  return from.includes("onboarding@resend.dev");
+}
 
-  if (fromEnv) {
-    emails.add(fromEnv.toLowerCase());
-  }
+function getResendOwnerEmail(): string | null {
+  const email =
+    process.env.RESEND_TO_EMAIL?.trim() ||
+    process.env.NOTIFICATION_EMAIL?.trim();
+  return email ? email.toLowerCase() : null;
+}
+
+async function resolveSmtpRecipients(): Promise<string[]> {
+  const emails = new Set<string>();
+  const fromEnv = process.env.NOTIFICATION_EMAIL?.trim();
+  if (fromEnv) emails.add(fromEnv.toLowerCase());
 
   try {
-    const fromDb = await getNotificationEmails();
-    for (const email of fromDb) {
+    for (const email of await getNotificationEmails()) {
       emails.add(email.toLowerCase());
     }
   } catch (error) {
@@ -65,6 +77,23 @@ async function resolveRecipients(): Promise<string[]> {
   }
 
   return [...emails];
+}
+
+async function resolveResendRecipients(): Promise<string[]> {
+  const owner = getResendOwnerEmail();
+  if (!owner) {
+    console.error("[email] RESEND_TO_EMAIL ou NOTIFICATION_EMAIL requis.");
+    return [];
+  }
+
+  if (isResendTestMode()) {
+    console.log(
+      `[email] Mode test Resend — envoi uniquement à ${owner} (équipe : voir /admin)`
+    );
+    return [owner];
+  }
+
+  return resolveSmtpRecipients();
 }
 
 async function sendViaResend(
@@ -145,19 +174,19 @@ async function sendViaSmtp(order: Order, recipients: string[]): Promise<void> {
 }
 
 export async function sendNewOrderNotification(order: Order): Promise<void> {
-  const recipients = await resolveRecipients();
+  if (process.env.RESEND_API_KEY) {
+    const recipients = await resolveResendRecipients();
+    if (recipients.length === 0) return;
+    await sendViaResend(order, recipients);
+    return;
+  }
 
+  const recipients = await resolveSmtpRecipients();
   if (recipients.length === 0) {
     console.error(
       "[email] Aucun destinataire — notification ignorée pour",
       order.reference
     );
-    return;
-  }
-
-  // Render bloque SMTP (ports 587/465) → Resend API en priorité
-  if (process.env.RESEND_API_KEY) {
-    await sendViaResend(order, recipients);
     return;
   }
 

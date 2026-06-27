@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ORDER_STATUSES,
   STATUS_LABELS,
@@ -42,30 +42,72 @@ export default function AdminTable({ token, onLogout }: AdminTableProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [savingId, setSavingId] = useState<number | null>(null);
+  const [newAlert, setNewAlert] = useState<string | null>(null);
+  const lastPendingCount = useRef<number | null>(null);
 
-  const loadOrders = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/admin/orders", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.status === 401) {
-        onLogout();
-        return;
+  const loadOrders = useCallback(
+    async (silent = false) => {
+      if (!silent) {
+        setLoading(true);
+        setError("");
       }
-      if (!res.ok) throw new Error();
-      setOrders(await res.json());
-    } catch {
-      setError("Impossible de charger les commandes.");
-    } finally {
-      setLoading(false);
-    }
-  }, [token, onLogout]);
+      try {
+        const res = await fetch("/api/admin/orders", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.status === 401) {
+          onLogout();
+          return;
+        }
+        if (!res.ok) throw new Error();
+        const data: Order[] = await res.json();
+        setOrders(data);
+
+        const pending = data.filter((o) => o.status === "pending").length;
+        if (
+          silent &&
+          lastPendingCount.current !== null &&
+          pending > lastPendingCount.current
+        ) {
+          const diff = pending - lastPendingCount.current;
+          setNewAlert(
+            diff === 1
+              ? "1 nouvelle commande en attente"
+              : `${diff} nouvelles commandes en attente`
+          );
+          if (
+            typeof Notification !== "undefined" &&
+            Notification.permission === "granted"
+          ) {
+            new Notification("Festichill — Nouvelle commande", {
+              body: `${diff} nouvelle(s) commande(s) à traiter`,
+              icon: "/icon.svg",
+            });
+          }
+        }
+        lastPendingCount.current = pending;
+      } catch {
+        if (!silent) setError("Impossible de charger les commandes.");
+      } finally {
+        if (!silent) setLoading(false);
+      }
+    },
+    [token, onLogout]
+  );
 
   useEffect(() => {
     loadOrders();
   }, [loadOrders]);
+
+  useEffect(() => {
+    const interval = setInterval(() => loadOrders(true), 30000);
+    return () => clearInterval(interval);
+  }, [loadOrders]);
+
+  function enableBrowserNotifications() {
+    if (typeof Notification === "undefined") return;
+    Notification.requestPermission();
+  }
 
   async function updateField(
     id: number,
@@ -143,6 +185,37 @@ export default function AdminTable({ token, onLogout }: AdminTableProps) {
 
       {error && <div className="error-message">{error}</div>}
 
+      {newAlert && (
+        <div className="admin-alert">
+          <span>🔔 {newAlert}</span>
+          <button
+            type="button"
+            className="admin-alert__dismiss"
+            onClick={() => setNewAlert(null)}
+          >
+            OK
+          </button>
+        </div>
+      )}
+
+      {typeof Notification !== "undefined" &&
+        Notification.permission === "default" && (
+          <div className="admin-notify-prompt">
+            <p>
+              Recevez une alerte navigateur quand une nouvelle commande arrive
+              (l&apos;équipe peut aussi consulter cette page).
+            </p>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              style={{ width: "auto", fontSize: "0.85rem" }}
+              onClick={enableBrowserNotifications}
+            >
+              Activer les notifications
+            </button>
+          </div>
+        )}
+
       <div className="admin-stats">
         <div className="stat-card">
           <div className="stat-value">{stats.total}</div>
@@ -192,7 +265,14 @@ export default function AdminTable({ token, onLogout }: AdminTableProps) {
               </tr>
             ) : (
               orders.map((order) => (
-                <tr key={order.id}>
+                <tr
+                  key={order.id}
+                  className={
+                    order.status === "pending"
+                      ? "admin-table__row--pending"
+                      : undefined
+                  }
+                >
                   <td className="ref-cell">{order.reference}</td>
                   <td>{order.full_name}</td>
                   <td>

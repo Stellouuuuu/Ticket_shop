@@ -36,6 +36,8 @@ services:
         sync: false
       - key: RESEND_FROM
         sync: false
+      - key: RESEND_TO_EMAIL
+        sync: false
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT

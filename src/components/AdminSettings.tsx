@@ -385,9 +385,26 @@ export default function AdminSettings({
       </section>
 
       <section className="admin-settings__section card">
-        <h2>Emails de notification</h2>
+        <h2>Notifications équipe</h2>
         <p className="subtitle">
-          Personnes qui reçoivent un email à chaque nouvelle commande.
+          Sans domaine vérifié sur Resend, seul l&apos;email configuré dans{" "}
+          <code>RESEND_TO_EMAIL</code> reçoit les mails (votre adresse perso).
+          Le reste de l&apos;équipe est alerté via le panneau{" "}
+          <strong>Commandes</strong> (rafraîchissement auto toutes les 30 s +
+          notifications navigateur).
+        </p>
+
+        <div className="admin-settings__info">
+          Configurez sur Render :{" "}
+          <code>RESEND_TO_EMAIL=stellagbaguidi68@gmail.com</code>
+        </div>
+      </section>
+
+      <section className="admin-settings__section card">
+        <h2>Emails (SMTP local uniquement)</h2>
+        <p className="subtitle">
+          Liste utilisée uniquement en local avec SMTP. Ignorée en mode test
+          Resend sur Render.
         </p>
 
         <ul className="admin-settings__list">
