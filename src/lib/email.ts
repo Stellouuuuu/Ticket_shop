@@ -48,23 +48,23 @@ function buildEmailContent(order: Order) {
 }
 
 async function resolveRecipients(): Promise<string[]> {
-  const fromEnv = process.env.NOTIFICATION_EMAIL?.trim();
-  const emails = new Set<string>();
-
-  if (fromEnv) {
-    emails.add(fromEnv.toLowerCase());
-  }
-
   try {
     const fromDb = await getNotificationEmails();
-    for (const email of fromDb) {
-      emails.add(email.toLowerCase());
+    if (fromDb.length > 0) {
+      console.log("[email] Destinataires (admin):", fromDb.join(", "));
+      return fromDb.map((e) => e.toLowerCase());
     }
   } catch (error) {
     console.error("[email] Impossible de lire les destinataires en base:", error);
   }
 
-  return [...emails];
+  const fallback = process.env.NOTIFICATION_EMAIL?.trim().toLowerCase();
+  if (fallback) {
+    console.log("[email] Destinataire fallback (NOTIFICATION_EMAIL):", fallback);
+    return [fallback];
+  }
+
+  return [];
 }
 
 async function sendViaResend(
