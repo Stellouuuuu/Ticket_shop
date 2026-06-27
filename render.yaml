@@ -13,7 +13,7 @@ services:
         value: "22"
       - key: NODE_ENV
         value: production
-      # --- À configurer dans le dashboard Render (Environment) ---
+      # --- MySQL (AlwaysData) ---
       - key: DB_HOST
         sync: false
       - key: DB_PORT
@@ -26,29 +26,17 @@ services:
         sync: false
       - key: DB_REMOTE
         value: "true"
+      # --- Admin ---
       - key: ADMIN_USERNAME
         value: admin
       - key: ADMIN_PASSWORD
         sync: false
       - key: APP_URL
         sync: false
+      # --- Resend (emails sur Render) ---
       - key: RESEND_API_KEY
         sync: false
       - key: RESEND_FROM
-        sync: false
+        value: "Festichill <onboarding@resend.dev>"
       - key: RESEND_ACCOUNT_EMAIL
-        sync: false
-      - key: SMTP_HOST
-        sync: false
-      - key: SMTP_PORT
-        value: "587"
-      - key: SMTP_SECURE
-        value: "false"
-      - key: SMTP_USER
-        sync: false
-      - key: SMTP_PASS
-        sync: false
-      - key: SMTP_FROM
-        sync: false
-      - key: NOTIFICATION_EMAIL
         sync: false

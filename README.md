@@ -135,37 +135,30 @@ Si SMTP n'est pas configuré, les commandes sont quand même enregistrées (mess
 
 ## Production
 
+### Render + Resend (recommandé)
+
+Hébergement Node.js sur Render, MySQL sur AlwaysData, emails via Resend.
+
+Voir **[DEPLOY-RENDER.md](./DEPLOY-RENDER.md)** pour le guide complet.
+
+### AlwaysData (alternative)
+
+Site + MySQL + SMTP au même hébergeur. Voir **[DEPLOY-ALWAYSDATA.md](./DEPLOY-ALWAYSDATA.md)**.
+
 ```bash
 npm run build
 npm start
 ```
 
-Définir `APP_URL` avec l'URL publique du site pour les liens dans les emails.
+## Déploiement sur Render (résumé)
 
-## Déploiement sur Render
+1. **GitHub** — pousser le code sur [Ticket_shop](https://github.com/Stellouuuuu/Ticket_shop)
+2. **Render** — [dashboard.render.com](https://dashboard.render.com) → **New +** → **Blueprint** → repo GitHub
+3. **Variables** — voir [DEPLOY-RENDER.md](./DEPLOY-RENDER.md) (DB, Resend, admin, APP_URL)
+4. **AlwaysData** — autoriser l'accès MySQL distant pour Render
+5. Tester `/tickets`, `/admin`, puis une commande test
 
-Le dépôt inclut un `render.yaml` (Blueprint). Étapes :
-
-1. **GitHub** — le code est sur [Ticket_shop](https://github.com/Stellouuuuu/Ticket_shop)
-2. **Render** — [dashboard.render.com](https://dashboard.render.com) → **New +** → **Blueprint** → connecter le repo GitHub
-3. **Variables d'environnement** — renseigner dans Render (ne jamais committer `.env`) :
-
-| Variable | Exemple |
-|----------|---------|
-| `DB_HOST` | `mysql-stellouuu.alwaysdata.net` |
-| `DB_USER` | `stellouuu_stellachrist` |
-| `DB_PASSWORD` | *(mot de passe MySQL)* |
-| `DB_NAME` | `stellouuu_festichill` |
-| `DB_REMOTE` | `true` |
-| `ADMIN_PASSWORD` | *(mot de passe admin fort)* |
-| `APP_URL` | `https://votre-app.onrender.com` |
-| `SMTP_*` | *(config Gmail / SMTP)* |
-
-4. **Base de données** — tables déjà créées via `npm run db:migrate-admin` sur AlwaysData.  
-   Si besoin : `npm run db:init && npm run db:migrate-admin` en local.
-5. **AlwaysData** — autoriser les connexions MySQL distantes depuis Render :  
-   Panneau AlwaysData → Bases de données → MySQL → **Accès distant** → ajouter `0.0.0.0/0` (ou l'IP sortante Render si plan payant).
-6. Après le déploiement, ouvrir `/admin` et changer le mot de passe admin.
+Détails, dépannage et config Resend : **[DEPLOY-RENDER.md](./DEPLOY-RENDER.md)**.
 
 ## Admin (comptes en base)
 
