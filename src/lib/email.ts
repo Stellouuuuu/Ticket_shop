@@ -48,69 +48,23 @@ function buildEmailContent(order: Order) {
 }
 
 async function resolveRecipients(): Promise<string[]> {
+  const fromEnv = process.env.NOTIFICATION_EMAIL?.trim();
+  const emails = new Set<string>();
+
+  if (fromEnv) {
+    emails.add(fromEnv.toLowerCase());
+  }
+
   try {
     const fromDb = await getNotificationEmails();
-    if (fromDb.length > 0) {
-      console.log("[email] Destinataires (admin):", fromDb.join(", "));
-      return fromDb.map((e) => e.toLowerCase());
+    for (const email of fromDb) {
+      emails.add(email.toLowerCase());
     }
   } catch (error) {
     console.error("[email] Impossible de lire les destinataires en base:", error);
   }
 
-  const fallback = process.env.NOTIFICATION_EMAIL?.trim().toLowerCase();
-  if (fallback) {
-    console.log("[email] Destinataire fallback (NOTIFICATION_EMAIL):", fallback);
-    return [fallback];
-  }
-
-  return [];
-}
-
-function getResendFromAddress(): string {
-  return (
-    process.env.RESEND_FROM ||
-    process.env.SMTP_FROM ||
-    "Festichill <onboarding@resend.dev>"
-  );
-}
-
-function isResendTestMode(from: string): boolean {
-  return from.includes("onboarding@resend.dev");
-}
-
-/** Sans domaine vérifié, Resend n'autorise que le mail du compte Resend. */
-function filterResendTestRecipients(recipients: string[]): string[] {
-  const from = getResendFromAddress();
-  if (!isResendTestMode(from)) {
-    return recipients;
-  }
-
-  const accountEmail = process.env.RESEND_ACCOUNT_EMAIL?.trim().toLowerCase();
-  if (!accountEmail) {
-    console.warn(
-      "[email] Mode test Resend — ajoutez RESEND_ACCOUNT_EMAIL sur Render (email du compte Resend)."
-    );
-    return recipients;
-  }
-
-  const allowed = recipients.filter((r) => r === accountEmail);
-  const skipped = recipients.filter((r) => r !== accountEmail);
-
-  if (skipped.length > 0) {
-    console.warn(
-      `[email] Mode test Resend — destinataires ignorés (vérifiez un domaine sur resend.com/domains): ${skipped.join(", ")}`
-    );
-  }
-
-  if (allowed.length > 0) {
-    return allowed;
-  }
-
-  console.warn(
-    `[email] Mode test Resend — envoi à ${accountEmail} (seul email autorisé sans domaine).`
-  );
-  return [accountEmail];
+  return [...emails];
 }
 
 async function sendViaResend(
@@ -120,7 +74,10 @@ async function sendViaResend(
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return false;
 
-  const from = getResendFromAddress();
+  const from =
+    process.env.RESEND_FROM ||
+    process.env.SMTP_FROM ||
+    "Festichill <onboarding@resend.dev>";
 
   const resend = new Resend(apiKey);
   const content = buildEmailContent(order);
@@ -188,7 +145,7 @@ async function sendViaSmtp(order: Order, recipients: string[]): Promise<void> {
 }
 
 export async function sendNewOrderNotification(order: Order): Promise<void> {
-  let recipients = await resolveRecipients();
+  const recipients = await resolveRecipients();
 
   if (recipients.length === 0) {
     console.error(
@@ -198,8 +155,8 @@ export async function sendNewOrderNotification(order: Order): Promise<void> {
     return;
   }
 
+  // Render bloque SMTP (ports 587/465) → Resend API en priorité
   if (process.env.RESEND_API_KEY) {
-    recipients = filterResendTestRecipients(recipients);
     await sendViaResend(order, recipients);
     return;
   }

@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start -p ${PORT:-3000}",
+    "start": "next start -H 0.0.0.0",
     "lint": "next lint",
     "db:init": "node scripts/init-db.mjs",
     "db:migrate-admin": "node scripts/migrate-admin.mjs",
@@ -24,10 +24,12 @@
     "resend": "^6.16.0"
   },
   "devDependencies": {
+    "@babel/core": "^8.0.1",
+    "@next/swc-wasm-nodejs": "15.5.19",
     "@types/node": "^22.15.32",
     "@types/nodemailer": "^6.4.17",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
-    "typescript": "5.8.2"
+    "typescript": "^5.8.3"
   }
 }
