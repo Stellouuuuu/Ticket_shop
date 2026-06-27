@@ -1088,11 +1088,11 @@ img {
 }
 
 .admin-page {
-  padding-bottom: 3rem;
-  max-width: none;
   width: 100%;
-  padding-left: clamp(0.75rem, 2vw, 1.5rem);
-  padding-right: clamp(0.75rem, 2vw, 1.5rem);
+  max-width: none;
+  margin: 0;
+  padding: 0 clamp(0.75rem, 2vw, 2rem) 3rem;
+  box-sizing: border-box;
 }
 
 .admin-tabs {
@@ -1326,29 +1326,43 @@ img {
   border: 1px solid var(--festi-border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  max-width: 100%;
+  width: 100%;
+  padding-bottom: 4px;
+}
+
+.admin-table-scroll-hint {
+  font-size: 0.75rem;
+  color: var(--favela-text-muted);
+  text-align: right;
+  margin: 0 0 0.35rem;
 }
 
 .admin-table-wrap::-webkit-scrollbar {
-  height: 10px;
+  height: 12px;
+}
+
+.admin-table-wrap::-webkit-scrollbar-track {
+  background: var(--favela-bg);
+  border-radius: 999px;
 }
 
 .admin-table-wrap::-webkit-scrollbar-thumb {
-  background: rgba(13, 61, 53, 0.25);
+  background: var(--favela-cyan);
   border-radius: 999px;
 }
 
 .admin-table {
-  width: max-content;
-  min-width: 100%;
+  width: 100%;
+  min-width: 1680px;
   border-collapse: collapse;
   font-size: 0.85rem;
+  table-layout: auto;
 }
 
 .admin-table th {
   background: var(--favela-teal);
   color: white;
-  padding: 0.75rem 0.65rem;
+  padding: 0.75rem 0.75rem;
   text-align: left;
   font-weight: 600;
   white-space: nowrap;
@@ -1358,20 +1372,17 @@ img {
 }
 
 .admin-table td {
-  padding: 0.65rem 0.65rem;
+  padding: 0.65rem 0.75rem;
   border-bottom: 1px solid var(--festi-border);
   vertical-align: top;
   white-space: nowrap;
-  max-width: 220px;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.admin-table td:nth-child(2),
 .admin-table td:nth-child(13),
 .admin-table td:nth-child(14) {
   white-space: normal;
-  max-width: 160px;
+  min-width: 140px;
+  max-width: 200px;
 }
 
 .admin-table tr:hover td {

@@ -235,6 +235,9 @@ export default function AdminTable({ token, onLogout }: AdminTableProps) {
         </div>
       </div>
 
+      <p className="admin-table-scroll-hint">
+        Faites défiler horizontalement pour voir toutes les colonnes →
+      </p>
       <div className="admin-table-wrap" role="region" aria-label="Tableau des commandes — défilement horizontal disponible">
         <table className="admin-table">
           <thead>

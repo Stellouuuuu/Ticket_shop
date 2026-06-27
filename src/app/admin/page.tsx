@@ -88,7 +88,7 @@ export default function AdminPage() {
         <SiteNav />
       </div>
 
-      <main className="container container-wide admin-page">
+      <main className="admin-page">
         {!token ? (
           <div className="card admin-login">
             <h1>Admin Festichill</h1>
