@@ -1089,6 +1089,10 @@ img {
 
 .admin-page {
   padding-bottom: 3rem;
+  max-width: none;
+  width: 100%;
+  padding-left: clamp(0.75rem, 2vw, 1.5rem);
+  padding-right: clamp(0.75rem, 2vw, 1.5rem);
 }
 
 .admin-tabs {
@@ -1316,14 +1320,27 @@ img {
 
 .admin-table-wrap {
   overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
   background: var(--festi-card);
   border: 1px solid var(--festi-border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+  max-width: 100%;
+}
+
+.admin-table-wrap::-webkit-scrollbar {
+  height: 10px;
+}
+
+.admin-table-wrap::-webkit-scrollbar-thumb {
+  background: rgba(13, 61, 53, 0.25);
+  border-radius: 999px;
 }
 
 .admin-table {
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   border-collapse: collapse;
   font-size: 0.85rem;
 }
@@ -1331,18 +1348,30 @@ img {
 .admin-table th {
   background: var(--favela-teal);
   color: white;
-  padding: 0.75rem 0.5rem;
+  padding: 0.75rem 0.65rem;
   text-align: left;
   font-weight: 600;
   white-space: nowrap;
   position: sticky;
   top: 0;
+  z-index: 1;
 }
 
 .admin-table td {
-  padding: 0.6rem 0.5rem;
+  padding: 0.65rem 0.65rem;
   border-bottom: 1px solid var(--festi-border);
   vertical-align: top;
+  white-space: nowrap;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-table td:nth-child(2),
+.admin-table td:nth-child(13),
+.admin-table td:nth-child(14) {
+  white-space: normal;
+  max-width: 160px;
 }
 
 .admin-table tr:hover td {
@@ -1357,16 +1386,18 @@ img {
   border: 1px solid var(--festi-border);
   border-radius: 4px;
   font-family: inherit;
-  width: 100%;
-  min-width: 90px;
+  width: auto;
+  min-width: 100px;
   background: var(--favela-bg);
   color: var(--favela-cream);
 }
 
 .admin-table textarea {
-  min-width: 140px;
+  min-width: 160px;
   min-height: 50px;
+  max-width: 200px;
   resize: vertical;
+  white-space: normal;
 }
 
 .saving-indicator {

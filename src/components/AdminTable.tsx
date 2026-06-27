@@ -235,7 +235,7 @@ export default function AdminTable({ token, onLogout }: AdminTableProps) {
         </div>
       </div>
 
-      <div className="admin-table-wrap">
+      <div className="admin-table-wrap" role="region" aria-label="Tableau des commandes — défilement horizontal disponible">
         <table className="admin-table">
           <thead>
             <tr>
