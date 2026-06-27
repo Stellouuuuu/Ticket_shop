@@ -14,7 +14,7 @@ export function getDbConfig(): ConnectionOptions {
     user: process.env.DB_USER || "root",
     password: process.env.DB_PASSWORD || "",
     database: process.env.DB_NAME || "festichill_tickets",
-    connectTimeout: remote ? 30000 : 15000,
+    connectTimeout: remote ? 60000 : 15000,
     enableKeepAlive: true,
     keepAliveInitialDelay: 10000,
   };

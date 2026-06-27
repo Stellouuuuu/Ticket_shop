@@ -116,29 +116,32 @@ export async function createOrder(
 export async function getOrderByReference(
   reference: string
 ): Promise<Order | null> {
-  const db = getPool();
-  const [rows] = await db.execute<mysql.RowDataPacket[]>(
-    "SELECT * FROM orders WHERE reference = ?",
-    [reference]
-  );
-  return rows[0] ? (rows[0] as Order) : null;
+  return withDbRetry(async (db) => {
+    const [rows] = await db.execute<mysql.RowDataPacket[]>(
+      "SELECT * FROM orders WHERE reference = ?",
+      [reference]
+    );
+    return rows[0] ? (rows[0] as Order) : null;
+  });
 }
 
 export async function getOrderById(id: number): Promise<Order | null> {
-  const db = getPool();
-  const [rows] = await db.execute<mysql.RowDataPacket[]>(
-    "SELECT * FROM orders WHERE id = ?",
-    [id]
-  );
-  return rows[0] ? (rows[0] as Order) : null;
+  return withDbRetry(async (db) => {
+    const [rows] = await db.execute<mysql.RowDataPacket[]>(
+      "SELECT * FROM orders WHERE id = ?",
+      [id]
+    );
+    return rows[0] ? (rows[0] as Order) : null;
+  });
 }
 
 export async function getAllOrders(): Promise<Order[]> {
-  const db = getPool();
-  const [rows] = await db.execute<mysql.RowDataPacket[]>(
-    "SELECT * FROM orders ORDER BY created_at DESC"
-  );
-  return rows as Order[];
+  return withDbRetry(async (db) => {
+    const [rows] = await db.execute<mysql.RowDataPacket[]>(
+      "SELECT * FROM orders ORDER BY created_at DESC"
+    );
+    return rows as Order[];
+  });
 }
 
 export async function updateOrder(
@@ -168,12 +171,17 @@ export async function updateOrder(
   if (fields.length === 0) return getOrderById(id);
 
   values.push(id);
-  const db = getPool();
-  await db.execute(
-    `UPDATE orders SET ${fields.join(", ")} WHERE id = ?`,
-    values as (string | number | null)[]
-  );
-  return getOrderById(id);
+  return withDbRetry(async (db) => {
+    await db.execute(
+      `UPDATE orders SET ${fields.join(", ")} WHERE id = ?`,
+      values as (string | number | null)[]
+    );
+    const [rows] = await db.execute<mysql.RowDataPacket[]>(
+      "SELECT * FROM orders WHERE id = ?",
+      [id]
+    );
+    return rows[0] ? (rows[0] as Order) : null;
+  });
 }
 
 export function generateReference(): string {

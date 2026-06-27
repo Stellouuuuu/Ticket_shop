@@ -54,10 +54,18 @@ export default function AdminTable({ token, onLogout }: AdminTableProps) {
         onLogout();
         return;
       }
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
       setOrders(await res.json());
-    } catch {
-      setError("Impossible de charger les commandes.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "";
+      setError(
+        msg.includes("timeout") || msg.includes("MySQL")
+          ? "Connexion MySQL lente — réessayez dans quelques secondes."
+          : "Impossible de charger les commandes."
+      );
     } finally {
       setLoading(false);
     }
