@@ -1,0 +1,20 @@
+# Dependencies & build
+node_modules/
+.next/
+out/
+
+# Environment (secrets)
+.env
+.env.local
+.env.*.local
+
+# Logs & OS
+*.log
+.DS_Store
+
+# Local data
+festichill_tickets/
+
+# IDE
+.cursor/
+.vscode/
