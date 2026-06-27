@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import {
   createOrder,
   generateReference,
@@ -73,9 +73,13 @@ export async function POST(request: Request) {
       total_amount
     );
 
-    // Email en arrière-plan — ne pas faire attendre le client
-    void sendNewOrderNotification(order).catch((emailError) => {
-      console.error("[email] Échec envoi notification:", emailError);
+    // Email après la réponse (API Next.js — garanti sur Render)
+    after(async () => {
+      try {
+        await sendNewOrderNotification(order);
+      } catch (emailError) {
+        console.error("[email] Échec envoi notification:", emailError);
+      }
     });
 
     return NextResponse.json({ reference: order.reference }, { status: 201 });

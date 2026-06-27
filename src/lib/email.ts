@@ -10,34 +10,56 @@ function getTransporter() {
 
   if (!host || !user || !pass) return null;
 
+  const port = Number(process.env.SMTP_PORT || 587);
+  const secure = process.env.SMTP_SECURE === "true";
+
   return nodemailer.createTransport({
     host,
-    port: Number(process.env.SMTP_PORT || 587),
-    secure: process.env.SMTP_SECURE === "true",
+    port,
+    secure,
+    requireTLS: !secure && port === 587,
     auth: { user, pass },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 20000,
   });
+}
+
+async function resolveRecipients(): Promise<string[]> {
+  const fromEnv = process.env.NOTIFICATION_EMAIL?.trim();
+  const emails = new Set<string>();
+
+  if (fromEnv) {
+    emails.add(fromEnv.toLowerCase());
+  }
+
+  try {
+    const fromDb = await getNotificationEmails();
+    for (const email of fromDb) {
+      emails.add(email.toLowerCase());
+    }
+  } catch (error) {
+    console.error("[email] Impossible de lire les destinataires en base:", error);
+  }
+
+  return [...emails];
 }
 
 export async function sendNewOrderNotification(order: Order): Promise<void> {
   const transporter = getTransporter();
-  let recipients: string[] = [];
+  const recipients = await resolveRecipients();
 
-  try {
-    recipients = await getNotificationEmails();
-  } catch (error) {
-    console.error("[email] Impossible de lire les destinataires:", error);
+  if (!transporter) {
+    console.error(
+      "[email] SMTP non configuré — notification ignorée pour",
+      order.reference
+    );
+    return;
   }
 
-  if (recipients.length === 0 && process.env.NOTIFICATION_EMAIL) {
-    recipients = [process.env.NOTIFICATION_EMAIL];
-  }
-
-  if (!transporter || recipients.length === 0) {
-    console.log(
-      "[email] SMTP ou destinataires non configurés — notification ignorée pour",
+  if (recipients.length === 0) {
+    console.error(
+      "[email] Aucun destinataire — notification ignorée pour",
       order.reference
     );
     return;
@@ -45,7 +67,7 @@ export async function sendNewOrderNotification(order: Order): Promise<void> {
 
   const from = process.env.SMTP_FROM || process.env.SMTP_USER;
 
-  await transporter.sendMail({
+  const info = await transporter.sendMail({
     from,
     to: recipients.join(", "),
     subject: `[Festichill] Nouvelle réservation — ${order.reference}`,
@@ -81,4 +103,8 @@ export async function sendNewOrderNotification(order: Order): Promise<void> {
       <p><a href="${process.env.APP_URL || "http://localhost:3000"}/admin">Ouvrir l'admin</a></p>
     `,
   });
+
+  console.log(
+    `[email] Notification envoyée pour ${order.reference} → ${recipients.join(", ")} (${info.messageId})`
+  );
 }
