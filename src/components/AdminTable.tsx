@@ -165,7 +165,6 @@ export default function AdminTable({ token, onLogout }: AdminTableProps) {
     return new Date(dateStr).toLocaleString("fr-FR", {
       day: "2-digit",
       month: "2-digit",
-      year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -235,11 +234,25 @@ export default function AdminTable({ token, onLogout }: AdminTableProps) {
         </div>
       </div>
 
-      <p className="admin-table-scroll-hint">
-        Faites défiler horizontalement pour voir toutes les colonnes →
-      </p>
-      <div className="admin-table-wrap" role="region" aria-label="Tableau des commandes — défilement horizontal disponible">
+      <div className="admin-table-wrap">
         <table className="admin-table">
+          <colgroup>
+            <col className="col-ref" />
+            <col className="col-name" />
+            <col className="col-phone" />
+            <col className="col-email" />
+            <col className="col-zone" />
+            <col className="col-type" />
+            <col className="col-qty" />
+            <col className="col-unit" />
+            <col className="col-total" />
+            <col className="col-status" />
+            <col className="col-assign" />
+            <col className="col-date" />
+            <col className="col-note" />
+            <col className="col-customer" />
+            <col className="col-created" />
+          </colgroup>
           <thead>
             <tr>
               <th>Réf.</th>
@@ -276,22 +289,22 @@ export default function AdminTable({ token, onLogout }: AdminTableProps) {
                       : undefined
                   }
                 >
-                  <td className="ref-cell">{order.reference}</td>
-                  <td>{order.full_name}</td>
-                  <td>
+                  <td className="ref-cell col-ref">{order.reference}</td>
+                  <td className="col-name">{order.full_name}</td>
+                  <td className="col-phone">
                     <a href={`tel:${order.phone}`}>{order.phone}</a>
                   </td>
-                  <td>
+                  <td className="col-email">
                     <a href={`mailto:${order.email}`}>{order.email}</a>
                   </td>
-                  <td>{order.delivery_zone}</td>
-                  <td>{TICKET_TYPE_LABELS[order.ticket_type] ?? order.ticket_type}</td>
-                  <td>{order.ticket_count}</td>
-                  <td>{formatPrice(order.unit_price)}</td>
-                  <td>
+                  <td className="col-zone">{order.delivery_zone}</td>
+                  <td className="col-type">{TICKET_TYPE_LABELS[order.ticket_type] ?? order.ticket_type}</td>
+                  <td className="col-qty">{order.ticket_count}</td>
+                  <td className="col-unit">{formatPrice(order.unit_price)}</td>
+                  <td className="col-total">
                     <strong>{formatPrice(order.total_amount)}</strong>
                   </td>
-                  <td>
+                  <td className="col-status">
                     <select
                       value={order.status}
                       onChange={(e) =>
@@ -308,7 +321,7 @@ export default function AdminTable({ token, onLogout }: AdminTableProps) {
                       <div className="saving-indicator">Sauvegarde...</div>
                     )}
                   </td>
-                  <td>
+                  <td className="col-assign">
                     <select
                       value={order.assigned_to || ""}
                       onChange={(e) =>
@@ -327,7 +340,7 @@ export default function AdminTable({ token, onLogout }: AdminTableProps) {
                       ))}
                     </select>
                   </td>
-                  <td>
+                  <td className="col-date">
                     <input
                       type="date"
                       value={toDateInputValue(order.delivery_date)}
@@ -340,7 +353,7 @@ export default function AdminTable({ token, onLogout }: AdminTableProps) {
                       }
                     />
                   </td>
-                  <td>
+                  <td className="col-note">
                     <textarea
                       defaultValue={order.internal_note || ""}
                       onBlur={(e) => {
@@ -349,15 +362,12 @@ export default function AdminTable({ token, onLogout }: AdminTableProps) {
                           updateField(order.id, "internal_note", val);
                         }
                       }}
-                      placeholder="Note interne..."
+                      placeholder="Note..."
+                      rows={2}
                     />
                   </td>
-                  <td style={{ fontSize: "0.8rem", color: "var(--festi-muted)" }}>
-                    {order.customer_note || "—"}
-                  </td>
-                  <td style={{ whiteSpace: "nowrap", fontSize: "0.8rem" }}>
-                    {formatDateTime(order.created_at)}
-                  </td>
+                  <td className="col-customer">{order.customer_note || "—"}</td>
+                  <td className="col-created">{formatDateTime(order.created_at)}</td>
                 </tr>
               ))
             )}
