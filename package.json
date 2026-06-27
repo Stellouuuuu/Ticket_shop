@@ -7,9 +7,8 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build && npm run postbuild",
-    "postbuild": "cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/",
-    "start": "node scripts/start-standalone.mjs",
+    "build": "next build",
+    "start": "next start -p ${PORT:-3000}",
     "lint": "next lint",
     "db:init": "node scripts/init-db.mjs",
     "db:migrate-admin": "node scripts/migrate-admin.mjs",
