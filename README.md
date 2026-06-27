@@ -110,8 +110,16 @@ Définir `ADMIN_PASSWORD` dans `.env`. L'équipe se connecte sur `/admin`.
 
 ### Notifications email
 
-Configurer les variables SMTP dans `.env` pour recevoir un email à chaque nouvelle commande.  
-Si SMTP n'est pas configuré, les commandes sont quand même enregistrées (un message apparaît dans les logs).
+**Sur Render**, le SMTP (Gmail, port 587) est **bloqué** → utiliser **Resend** :
+
+1. Créer un compte sur [resend.com](https://resend.com)
+2. **API Keys** → créer une clé
+3. Sur Render, ajouter `RESEND_API_KEY=re_...`
+4. Ajouter `RESEND_FROM=Festichill <onboarding@resend.dev>` (tests) ou un domaine vérifié en production
+
+En **local**, le SMTP Gmail fonctionne (variables `SMTP_*` dans `.env`).
+
+Si SMTP n'est pas configuré, les commandes sont quand même enregistrées (message dans les logs).
 
 ## Statuts de commande
 
