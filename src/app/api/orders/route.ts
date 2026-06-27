@@ -73,11 +73,10 @@ export async function POST(request: Request) {
       total_amount
     );
 
-    try {
-      await sendNewOrderNotification(order);
-    } catch (emailError) {
+    // Email en arrière-plan — ne pas faire attendre le client
+    void sendNewOrderNotification(order).catch((emailError) => {
       console.error("[email] Échec envoi notification:", emailError);
-    }
+    });
 
     return NextResponse.json({ reference: order.reference }, { status: 201 });
   } catch (error) {

@@ -87,29 +87,30 @@ export async function createOrder(
   unitPrice: number,
   totalAmount: number
 ): Promise<Order> {
-  const db = getPool();
-  const [result] = await db.execute<mysql.ResultSetHeader>(
-    `INSERT INTO orders (
-      reference, full_name, phone, email, delivery_zone, ticket_type,
-      ticket_count, unit_price, total_amount, status, customer_note
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`,
-    [
-      reference,
-      input.full_name.trim(),
-      input.phone.trim(),
-      input.email.trim(),
-      input.delivery_zone.trim(),
-      input.ticket_type,
-      input.ticket_count,
-      unitPrice,
-      totalAmount,
-      input.customer_note?.trim() || null,
-    ]
-  );
+  return withDbRetry(async (db) => {
+    const [result] = await db.execute<mysql.ResultSetHeader>(
+      `INSERT INTO orders (
+        reference, full_name, phone, email, delivery_zone, ticket_type,
+        ticket_count, unit_price, total_amount, status, customer_note
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`,
+      [
+        reference,
+        input.full_name.trim(),
+        input.phone.trim(),
+        input.email.trim(),
+        input.delivery_zone.trim(),
+        input.ticket_type,
+        input.ticket_count,
+        unitPrice,
+        totalAmount,
+        input.customer_note?.trim() || null,
+      ]
+    );
 
-  const order = await getOrderById(result.insertId);
-  if (!order) throw new Error("Commande créée mais introuvable");
-  return order;
+    const order = await getOrderById(result.insertId);
+    if (!order) throw new Error("Commande créée mais introuvable");
+    return order;
+  });
 }
 
 export async function getOrderByReference(
